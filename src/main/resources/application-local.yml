@@ -1,12 +1,11 @@
-# src/main/resources/application-local.yml
-
 spring:
   datasource:
-    # ✅ url 맨 뒤에 &allowPublicKeyRetrieval=true 추가
-    url: jdbc:mysql://localhost:3306/guardpay?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 1. URL의 'mysql'을 'mariadb'로 변경
+    url: jdbc:mariadb://localhost:3306/guardpay?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    # 2. MariaDB 드라이버 클래스 이름으로 변경
+    driver-class-name: org.mariadb.jdbc.Driver
     username: root
-    password: aktr0204 # 실제 비밀번호로 변경
+    password: 1234 # 여기에 실제 비밀번호를 입력하세요
 
   jpa:
     hibernate:
@@ -15,4 +14,5 @@ spring:
     properties:
       hibernate:
         format_sql: true
-    database-platform: org.hibernate.dialect.MySQLDialect
+    # 3. Hibernate Dialect(방언)를 MariaDB에 맞게 변경
+    database-platform: org.hibernate.dialect.MariaDBDialect
