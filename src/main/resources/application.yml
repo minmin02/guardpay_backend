@@ -1,13 +1,7 @@
-# src/main/resources/application.yml
-
-# 공통 설정
 spring:
   application:
     name: guardpay
-  # ✅ 기본 활성화 프로필을 'local'로 지정합니다.
-  # 이렇게 하면 `application-local.yml` 파일을 읽어옵니다.
   profiles:
-    active: local
 
 server:
   port: 8080
