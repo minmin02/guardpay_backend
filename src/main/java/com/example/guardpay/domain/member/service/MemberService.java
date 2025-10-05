@@ -1,9 +1,9 @@
-package com.example.guardpay.member.service;
+package com.example.guardpay.domain.member.service;
 
 
-import com.example.guardpay.member.dto.SignupRequestDto;
-import com.example.guardpay.member.entity.Member;
-import com.example.guardpay.member.repository.MemberRepository;
+import com.example.guardpay.domain.member.dto.SignupRequestDto;
+import com.example.guardpay.domain.member.entity.Member;
+import com.example.guardpay.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

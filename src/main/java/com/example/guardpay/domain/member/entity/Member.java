@@ -1,20 +1,24 @@
-package com.example.guardpay.member.entity;
+package com.example.guardpay.domain.member.entity;
 
+import com.example.guardpay.domain.member.data.Grade;
+import com.example.guardpay.global.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 
 @Entity
-@NoArgsConstructor
-public class Member {
+@Getter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+public class Member extends BaseEntity {
 
 @Id
 @GeneratedValue(strategy= GenerationType.IDENTITY)
-private Integer id;
+private Integer memberId;
 
 
     @Column(nullable = false, unique = true)
@@ -29,7 +33,8 @@ private Integer id;
 
     private int points; // 포인트
 
-    private int level; // 회원등급
+    @Enumerated(EnumType.STRING)
+    private Grade grade;
 
     @Column(length = 20)
     private String status; // 회원상태
@@ -62,7 +67,7 @@ private Integer id;
         this.password = password;
         this.nickname = nickname;
         this.points = 0;
-        this.level = 1;
+        this.grade = Grade.BRONZE;
         this.status = "ACTIVE"; // 예: 활성 상태를 기본값으로 지정
         this.exp = 0;
         this.fontSize = 16; // 예: 기본 폰트 크기
