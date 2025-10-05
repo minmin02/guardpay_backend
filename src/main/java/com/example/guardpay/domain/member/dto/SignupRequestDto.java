@@ -1,9 +1,10 @@
-package com.example.guardpay.member.dto;
+package com.example.guardpay.domain.member.dto;
 
 
 import lombok.Getter;
 import lombok.Setter;
 
+//
 @Getter
 @Setter
 public class SignupRequestDto {

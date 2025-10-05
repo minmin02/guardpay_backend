@@ -1,8 +1,8 @@
-package com.example.guardpay.member.controller;
+package com.example.guardpay.domain.member.controller;
 
 
-import com.example.guardpay.member.dto.SignupRequestDto;
-import com.example.guardpay.member.service.MemberService;
+import com.example.guardpay.domain.member.dto.SignupRequestDto;
+import com.example.guardpay.domain.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 @RestController
 @RequiredArgsConstructor
