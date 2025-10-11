@@ -16,7 +16,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/users")
+@RequestMapping("/api/auth")
 public class MemberApiConroller {
 
     private final MemberService memberService; // 3. final 키워드 추가
