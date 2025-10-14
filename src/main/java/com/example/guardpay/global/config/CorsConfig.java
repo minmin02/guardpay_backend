@@ -1,4 +1,4 @@
-package com.example.guardpay.global;
+package com.example.guardpay.global.config;
 
 
 import org.springframework.context.annotation.Configuration;

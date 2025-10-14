@@ -3,8 +3,7 @@ package com.example.guardpay.domain.assessment.entity;
 
 import com.example.guardpay.domain.assessment.dto.OptionDto;
 import com.example.guardpay.domain.assessment.dto.converter.OptionsJsonConverter;
-import com.example.guardpay.domain.bank.entity.VirtualUsers;
-import com.example.guardpay.global.BaseEntity;
+import com.example.guardpay.global.config.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;

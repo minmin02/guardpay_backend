@@ -1,7 +1,7 @@
 package com.example.guardpay.domain.video.entity;
 
 
-import com.example.guardpay.global.BaseEntity;
+import com.example.guardpay.global.config.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 

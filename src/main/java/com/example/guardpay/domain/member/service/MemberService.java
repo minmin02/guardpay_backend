@@ -1,7 +1,7 @@
 package com.example.guardpay.domain.member.service;
 
 
-import com.example.guardpay.domain.member.dto.SignupRequestDto;
+import com.example.guardpay.domain.member.dto.request.SignupRequestDto;
 import com.example.guardpay.domain.member.entity.Member;
 import com.example.guardpay.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;

@@ -1,13 +1,14 @@
 package com.example.guardpay.domain.member.entity;
 
 import com.example.guardpay.domain.member.data.Grade;
-import com.example.guardpay.global.BaseEntity;
+import com.example.guardpay.global.config.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -66,14 +67,40 @@ private Integer memberId;
         this.email = email;
         this.password = password;
         this.nickname = nickname;
+
         this.points = 0;
         this.grade = Grade.BRONZE;
         this.status = "ACTIVE"; // 예: 활성 상태를 기본값으로 지정
         this.exp = 0;
         this.fontSize = 16; // 예: 기본 폰트 크기
-        this.role = role;
+
+        this.role = "ROLE_USER";
         this.provider = provider;
         this.providerId = providerId;
+    }
+
+    //소셜 회원가입 메소드
+    public static Member createSocialMember(String email, String nickname, String provider, String providerId) {
+        Member member = new Member();
+        member.email = email;
+        member.nickname = nickname;
+
+        member.provider = provider;
+        member.providerId = providerId;
+
+
+
+        // 소셜 로그인 사용자는 비밀번호를 사용하지 않으므로, 보안을 위해 임의의 값을 할당
+        member.password = UUID.randomUUID().toString();
+        member.role = "ROLE_USER"; // 기본 권한 부여
+        // ... grade, points 등 기타 필드 기본값 설정 ...
+        member.points = 0;
+        member.grade = Grade.BRONZE;
+        member.status = "ACTIVE"; // 예: 활성 상태를 기본값으로 지정
+        member.exp = 0;
+        member.fontSize = 16;
+
+        return member;
     }
 
 }

@@ -2,7 +2,7 @@ package com.example.guardpay.domain.bank.entity;
 
 import com.example.guardpay.domain.bank.entity.data.TransferStatus;
 import com.example.guardpay.domain.member.entity.Member;
-import com.example.guardpay.global.BaseEntity;
+import com.example.guardpay.global.config.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 

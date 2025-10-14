@@ -3,7 +3,7 @@ package com.example.guardpay.domain.member.entity.mapping;
 
 import com.example.guardpay.domain.member.entity.Member;
 import com.example.guardpay.domain.member.entity.TERM;
-import com.example.guardpay.global.BaseEntity;
+import com.example.guardpay.global.config.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
