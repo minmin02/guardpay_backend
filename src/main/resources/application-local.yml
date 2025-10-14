@@ -16,3 +16,9 @@ spring:
         format_sql: true
     # 3. Hibernate Dialect(방언)를 MariaDB에 맞게 변경
     database-platform: org.hibernate.dialect.MariaDBDialect
+
+  jwt:
+    # ⬇️ 이 부분이 가장 중요합니다. 외부에 노출되면 안 되는 매우 긴 비밀 키를 입력하세요.
+    secret-key: V293ISB0aGlzIGlzIGEgdmVyeSBsb25nIGFuZCBzZWN1cmUgc2VjcmV0IGtleSBmb3IgSldUIGVuY29kaW5nLiBEbyBub3Qgc2hhcmUgaXQgd2l0aCBhbnlvbmUh
+    access-token-validity-in-seconds: 3600   # 1시간
+    refresh-token-validity-in-seconds: 604800 # 7일

@@ -1,4 +1,4 @@
-package com.example.guardpay.domain.member.dto;
+package com.example.guardpay.domain.member.dto.request;
 
 
 import lombok.Getter;
