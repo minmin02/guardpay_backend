@@ -103,4 +103,9 @@ private Integer memberId;
         return member;
     }
 
+    public Member updateSocialProfile(String nickname) {
+        this.nickname = nickname;
+        return this;
+    }
+
 }
