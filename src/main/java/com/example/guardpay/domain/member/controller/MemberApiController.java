@@ -6,10 +6,7 @@ import com.example.guardpay.domain.member.dto.request.LoginRequest;
 import com.example.guardpay.domain.member.dto.request.SignupRequestDto;
 import com.example.guardpay.domain.member.dto.response.AuthResponseDto;
 import com.example.guardpay.domain.member.dto.response.JwtResponse;
-import com.example.guardpay.domain.member.service.AuthService;
-import com.example.guardpay.domain.member.service.MemberLoginService;
-import com.example.guardpay.domain.member.service.MemberSignService;
-import com.example.guardpay.domain.member.service.PasswordResetService;
+import com.example.guardpay.domain.member.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +26,8 @@ public class MemberApiController {
     private final AuthService kakaoAuthService; // 신규유저, 기존 유저확인 로직(카카오)
 
     private final PasswordResetService passwordResetService; // ⬅️ 새로 주입
+
+    private final checkEmailService checkEmailService;
 
     //폼 회원가입
     @PostMapping("/signup")
@@ -87,6 +86,23 @@ public class MemberApiController {
 
         return ResponseEntity.ok(response);
     }
+
+    //이메일 중복 체크
+    @GetMapping("/check-email")
+    public ResponseEntity<Map<String, String>> checkEmail(@RequestParam("email") String email) {
+        Map<String, String> response = new HashMap<>();
+
+        boolean exists = checkEmailService.existsByEmail(email);
+
+        if (exists) {
+            response.put("message", "사용 불가 이메일입니다.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } else {
+            response.put("message", "사용 가능한 이메일입니다.");
+            return ResponseEntity.ok(response);
+        }
+    }
+
 
 
 
