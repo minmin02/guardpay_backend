@@ -83,5 +83,3 @@ spring:
       ddl-auto: validate   # ?? DB? ??? ?? ?? ??
     show-sql: false
 
-server:
-  port: 8080

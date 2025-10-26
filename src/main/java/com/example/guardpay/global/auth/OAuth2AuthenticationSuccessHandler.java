@@ -21,38 +21,50 @@ import java.io.IOException;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final MemberRepository memberRepository; // ✅ DB 조회를 위해 MemberRepository 주입
+    private final MemberRepository memberRepository;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+    public void onAuthenticationSuccess(HttpServletRequest request,
+                                        HttpServletResponse response,
+                                        Authentication authentication) throws IOException {
 
-        // 1. Authentication 객체에서 OAuth2User 정보를 가져옵니다.
+        // 1) OAuth2 사용자 정보
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-
-        // 2. OAuth2User에서 이메일을 추출합니다.
         String email = oAuth2User.getAttribute("email");
+        if (email == null) {
+            // IdP별로 email 속성 키가 다를 수 있으니 필요하면 별도 매핑 처리
+            throw new IllegalArgumentException("OAuth2 provider did not return an email attribute.");
+        }
 
-        // 3. 이메일을 사용해 DB에서 Member를 조회하고 memberId를 가져옵니다.
-        //    orElseThrow를 사용하여 해당 이메일의 유저가 없으면 예외를 발생시킵니다.
+        // 2) DB에서 회원 조회 (memberId/role 확보)
         Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. email=" + email));
 
         Integer memberId = member.getMemberId();
-        log.info("OAuth2 로그인 성공! Member ID: {}", memberId);
+        String role = normalizeRole(member.getRole()); // ROLE_ 접두어 보정
 
-        // 4. 조회한 memberId(Integer)를 사용해 JWT를 생성합니다.
-        String accessToken = jwtTokenProvider.createAccessToken(memberId);
+        log.info("[OAuth2 Success] memberId={}, email={}, role={}", memberId, member.getEmail(), role);
+
+        // 3) JWT 발급 (memberId + role 사용)
+        String accessToken  = jwtTokenProvider.createAccessToken(memberId, role);
         String refreshToken = jwtTokenProvider.createRefreshToken(memberId);
 
-        // 5. 토큰을 담아 프론트엔드로 리디렉션합니다.
+        // 4) 프론트로 리다이렉트 (딥링크 예시)
         String targetUrl = createRedirectUrl(accessToken, refreshToken);
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
+    }
+
+    // ROLE_ 접두어가 없으면 붙여주기
+    private String normalizeRole(String role) {
+        if (role == null || role.isBlank()) return "ROLE_USER";
+        return role.startsWith("ROLE_") ? role : "ROLE_" + role;
     }
 
     private String createRedirectUrl(String accessToken, String refreshToken) {
         return UriComponentsBuilder.fromUriString("guardpay://oauth-redirect")
                 .queryParam("accessToken", accessToken)
                 .queryParam("refreshToken", refreshToken)
-                .build().toUriString();
+                .build()
+                .toUriString();
     }
 }

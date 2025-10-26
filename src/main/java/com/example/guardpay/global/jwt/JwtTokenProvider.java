@@ -1,87 +1,151 @@
 package com.example.guardpay.global.jwt;
 
+import com.example.guardpay.domain.member.entity.Member;
+import com.example.guardpay.domain.member.repository.MemberRepository;
+import com.example.guardpay.global.exception.MemberNotFoundException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.Duration;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
 public class JwtTokenProvider {
 
-    // 1. application.yml에서 설정값 주입받기
-    @Value("${jwt.secret-key}")
-    private String secretKey;
-
-    @Value("${jwt.access-token-validity-in-seconds}")
-    private long accessTokenValidityInSeconds;
-
-    @Value("${jwt.refresh-token-validity-in-seconds}")
-    private long refreshTokenValidityInSeconds;
+    private final MemberRepository memberRepository;
 
     private Key key;
+    private final String secretKey;
+    private final long accessTokenValidityInMs;
+    private final long refreshTokenValidityInMs;
 
-    // 2. 주입받은 secretKey를 기반으로 암호화 키(Key) 객체 생성
+    public static final String CLAIM_TYPE = "type";   // "access" | "refresh"
+    public static final String CLAIM_ROLE = "role";   // "USER" 등
+
+    public JwtTokenProvider(
+            MemberRepository memberRepository,
+            @Value("${jwt.secret-key}") String secretKey,
+            @Value("${jwt.access-token-validity-in-seconds}") long accessTokenValidityInSeconds,
+            @Value("${jwt.refresh-token-validity-in-seconds}") long refreshTokenValidityInSeconds
+    ) {
+        this.memberRepository = memberRepository;
+        this.secretKey = secretKey;
+        this.accessTokenValidityInMs = accessTokenValidityInSeconds * 1000L;
+        this.refreshTokenValidityInMs = refreshTokenValidityInSeconds * 1000L;
+    }
+
     @PostConstruct
-    protected void init() {
+    void init() {
         byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // 3. AccessToken 생성 로직
-    public String createAccessToken(Integer memberId) {
-        return createToken(String.valueOf(memberId), accessTokenValidityInSeconds);
+    /** AccessToken: sub=memberId, claims: {type=access, role=...} */
+    public String createAccessToken(Integer memberId, String role) {
+        //memberId 문자열로 바꿈 subject로 넘김
+        return createToken(String.valueOf(memberId), accessTokenValidityInMs,
+                Map.of(CLAIM_TYPE, "access", CLAIM_ROLE, role));
     }
 
-    // 4. RefreshToken 생성 로직
     public String createRefreshToken(Integer memberId) {
-        return createToken(String.valueOf(memberId), refreshTokenValidityInSeconds);
+        return createToken(String.valueOf(memberId), refreshTokenValidityInMs,
+                Map.of(CLAIM_TYPE, "refresh"));
     }
 
-    // 5. 토큰 생성 공통 로직
-    private String createToken(String subject, long validityInSeconds) {
-        Claims claims = Jwts.claims().setSubject(subject);
+
+    private String createToken(String subject, long validityInMs, Map<String, Object> extraClaims) {
         Date now = new Date();
-        Date validity = new Date(now.getTime() + validityInSeconds * 1000);
+        Date exp = new Date(now.getTime() + validityInMs);
+
+        Claims claims = Jwts.claims().setSubject(subject);
+        if (extraClaims != null && !extraClaims.isEmpty()) {
+            claims.putAll(extraClaims);
+        }
 
         return Jwts.builder()
-                .setClaims(claims) // 정보 저장
-                .setIssuedAt(now) // 토큰 발행 시간 정보
-                .setExpiration(validity) // 만료 시간 설정
-                .signWith(key, SignatureAlgorithm.HS256) // 사용할 암호화 알고리즘과 signature
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(exp)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // --- 아래부터는 토큰 검증 및 정보 추출에 필요한 메소드들 ---
-
-    // 6. 토큰에서 회원 ID 추출
-    public Integer getMemberIdFromToken(String token) {
-        // 토큰의 payload에서 subject(회원 ID)를 추출
-        String memberId = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
-        return Integer.parseInt(memberId);
-    }
-
-    // 7. 토큰 유효성 검증
+    /** 토큰 검증 (서명/만료) */
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (Exception e) {
-            log.error("유효하지 않은 토큰입니다. {}", e.getMessage());
+            log.warn("유효하지 않은 토큰: {}", e.getMessage());
             return false;
         }
     }
+
+    /** 토큰에서 memberId(sub) 추출 */
+    public Long getMemberId(String token) {
+        String sub = Jwts.parserBuilder()
+                .setSigningKey(key).build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+        return Long.valueOf(sub); // Integer를 String으로 넣었지만 Long으로 꺼내도 무방
+    }
+
+
+    /** 토큰에서 type(access|refresh) 추출 (옵션) */
+    public String getTokenType(String token) {
+        return (String) Jwts.parserBuilder()
+                .setSigningKey(key).build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get(CLAIM_TYPE);
+    }
+
+    /** 토큰에서 role 추출 (옵션) */
+    public String getRole(String token) {
+        Object r = Jwts.parserBuilder()
+                .setSigningKey(key).build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get(CLAIM_ROLE);
+        return r == null ? null : String.valueOf(r);
+    }
+
+    /**
+     * Authentication 생성:
+     *  - 토큰 서명/만료 검증 후, sub(memberId)로 DB 조회하여 최신 권한/상태 반영
+     */
+    public Authentication getAuthentication(String token) {
+        Long memberId = getMemberId(token);
+
+        Member m = memberRepository.findById(memberId)
+                .orElseThrow(MemberNotFoundException::new);
+
+        // 최신 권한 반영 (예: m.getRole().name() -> "USER")
+        List<SimpleGrantedAuthority> authorities =
+                List.of(new SimpleGrantedAuthority("ROLE_" + m.getRole()));
+
+        // principal은 보통 고유키를 username으로 둡니다.
+        var principal = new org.springframework.security.core.userdetails.User(
+                String.valueOf(m.getMemberId()), "", authorities);
+
+
+        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+    }
+
 }
