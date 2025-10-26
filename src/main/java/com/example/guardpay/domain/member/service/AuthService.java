@@ -73,7 +73,7 @@ public class AuthService {
         }
 
         // 4. 우리 서비스의 JWT 토큰 발급 (Member의 ID 사용)
-        String serviceAccessToken = jwtTokenProvider.createAccessToken(member.getMemberId()); // ✅ OK: public 메소드 호출
+        String serviceAccessToken = jwtTokenProvider.createAccessToken(member.getMemberId(),member.getRole()); // ✅ OK: public 메소드 호출
 
         // 5. 최종 응답 DTO 생성 후 반환
         return new AuthResponseDto(serviceAccessToken, isNewUser);

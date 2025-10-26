@@ -108,4 +108,8 @@ private Integer memberId;
         return this;
     }
 
+    public void updatePassword(String newPasswordHash) {
+        this.password = newPasswordHash;
+    }
+
 }
