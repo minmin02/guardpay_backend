@@ -48,7 +48,13 @@ public class SecurityConfig {
         );
 
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/oauth2/**","/api/auth/password-reset-request","/api/auth/kakao").permitAll() // ⬅️ 여기!
+                .requestMatchers(
+                        "/api/auth/**",
+                        "/oauth2/**",
+                        "/api/auth/password-reset-request",
+                        "/api/auth/kakao",
+                        "/api/auth/check-email")
+                .permitAll() // ⬅️ 여기!
                 .anyRequest().authenticated()
         );
 
