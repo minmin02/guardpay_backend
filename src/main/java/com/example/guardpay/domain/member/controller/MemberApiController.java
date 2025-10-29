@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import com.example.guardpay.domain.member.service.GoogleService;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +28,8 @@ public class MemberApiController {
     private final PasswordResetService passwordResetService; // ⬅️ 새로 주입
 
     private final checkEmailService checkEmailService;
+
+    private final GoogleService googleService;
 
     //폼 회원가입
     @PostMapping("/signup")
@@ -103,8 +105,10 @@ public class MemberApiController {
         }
     }
 
-
-
-
-
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponseDto> googleLogin(@RequestBody Map<String, String> requestBody) {
+        String idToken = requestBody.get("accessToken"); // Android에서 전달하는 필드명
+        AuthResponseDto response = googleService.loginOrSignup(idToken);
+        return ResponseEntity.ok(response);
+    }
 }
